@@ -1,5 +1,7 @@
+import random
 
-WORD = 'Disputing'
+
+WORD = 'orange'
 WORD_LIST = ['ooohooo', 'Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
 
 # The phonetic language in the form letters: phonetic sound.
@@ -153,7 +155,7 @@ def replace_word_with_phonetic(before, word, phonetic_word, phonetic, mod, char_
                                                   PHONETIC_ALPHABET[mod + phonetic])
 
 def split_words_into_syllables(word_list):
-    phonetic_word_list = []
+    phonetic_word_list = {}
     # We are fitting the word to the phonetics to the fullest extent, such that largest phonetics are fitted first
     phonetic_largest = sorted([x for x in PHONETIC_ALPHABET], key=len, reverse=True)
 
@@ -169,7 +171,7 @@ def split_words_into_syllables(word_list):
 
             # No further chars left
             if set(word) == {'*'}:
-                phonetic_word_list.append(phonetic_word)
+                phonetic_word_list[original] = phonetic_word
                 word_added = True
                 break
 
@@ -230,32 +232,110 @@ def split_words_into_syllables(word_list):
                     phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic])
 
         if not word_added:
-            phonetic_word_list.append(phonetic_word)
+            phonetic_word_list[original] = phonetic_word
 
     # print(phonetic_largest)
     return phonetic_word_list
 
     # Idea, go through each letter and write down the phonetics for that letter. Compare the number of similar phonetics
 
-def find_best_matches(word_list):
-    best_matches = []
 
-    input_word = word_list[0]
+def find_best_matches(words_list):
+    scores = {}
+
+    # formatted_words = list(words_list.values())
+    input_word = words_list[WORD]
     # Splits the word into phonetics, removing the /x/ either side
     formatted_input_word = list(filter(None, input_word.split('/')))
+    formatted_input_word.reverse()
+    input_len = len(formatted_input_word)
 
     print(formatted_input_word)
     print()
 
-    for i in range(1, len(word_list)):
-        print(WORD_LIST[i - 1])
-        word = word_list[i]
-        word = list(filter(None, word.split('/')))
-        print(word)
+    i = 0
 
-    return best_matches
+    for key, word in words_list.items():
+        # Skips first item
+        if i == 0:
+            i = -1
+            continue
+
+        total = -1
+
+        word = list(filter(None, word.split('/')))
+        word.reverse()
+
+        # The number of successive correct inputs in a row
+        successive_inputs = 0
+
+        for phonetic_type in word:
+
+            if phonetic_type in formatted_input_word:
+                # Score is distance from each other from end of word, end of word is preferred so penalisation applied
+                # to later indexes, unless there are correct successive phonetics, at which point no penalty is applied
+                index_in_input = formatted_input_word.index(phonetic_type)
+                if successive_inputs > 0:
+                    score = abs(index_in_input - word.index(phonetic_type))
+                else:
+                    score = abs(index_in_input - word.index(phonetic_type)) + (index_in_input * 5)
+
+                successive_inputs += 1
+
+                if total == -1:
+                    total = score
+                else:
+                    total += score
+            else:
+                successive_inputs = 0
+                # Penalise by 10 points if doesn't exist, corrected for length
+                word_len = len(word)
+
+                score = (input_len / word_len) * 10
+                if total == -1:
+                    total = score
+                else:
+                    total += score
+
+        if total > -1:
+            if total in scores:
+                scores[total].append({key: word})
+            else:
+                scores[total] = [{key: word}]
+
+    best_matched_words = []
+
+    # Returns those matches which received a score of 5 between themselves
+    # best_matched_words = [scores[key] for key in sorted(scores) if key < sorted(scores)[0] + 5]
+
+    best_scores = list(sorted(scores))
+    sorted_scores = [scores[key] for key in best_scores if key < ((input_len - 1) * 10)]
+
+    if not sorted_scores:
+        return []
+    # If there are more than 1 word with the same best score, take these as being best matched
+    elif len(sorted_scores[0]) > 1:
+        best_matched_words = best_scores
+    else:
+        # Otherwise find scores within 5 of best
+        best = best_scores[0]
+        best_within_range = [scores[key] for key in scores if key < (best + 5)]
+        best_matched_words += best_within_range
+
+    return best_matched_words
 
 
 if __name__ == '__main__':
     phonetic_word_list = split_words_into_syllables([WORD] + WORD_LIST.copy())
     best_matches = find_best_matches(phonetic_word_list)
+
+    if best_matches:
+        word_selection = []
+        for selection in best_matches:
+            for word in selection:
+                word_selection.append(list(word.keys())[0])
+        chosen_word = random.choice(word_selection)
+    else:
+        chosen_word = "NOTHING (there are no rhyming words)"
+
+    print("With input word {}, the best rhyming match is {}.".format(WORD, chosen_word))
