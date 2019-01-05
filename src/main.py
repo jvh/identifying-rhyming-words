@@ -85,24 +85,55 @@ PHONETIC_ALPHABET = {
     # testing
     'Comp': '/yassss/',
     # 'ooo': '/yes/',
-    'Soo': '/hello/'
+    'Sooo': '/hello/',
+    'oooE': '/hello/'
 }
 
 CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
 VOWELS = 'aeiou'
 
 
-def check_if_mod_valid(char, modifier):
+def check_char_mod_validity(char, modifier, index_of_substr=-1):
     if modifier == 'C':
         if char in CONSONANTS:
             return True
     elif modifier == 'V':
         if char in VOWELS:
             return True
-    elif char == modifier:
-        return True
     return False
 
+
+def check_pos_mod_validity(modifier, phonetic, word, index_of_substr):
+    if modifier == 'S':
+        if index_of_substr == 0:
+            return True
+    # Ensuring phonetic in correct place in word
+    elif modifier == 'E':
+        a = len(word)
+        b = len(phonetic)+index_of_substr
+        if len(phonetic)+index_of_substr == len(word):
+            return True
+    return False
+
+
+def indexes_in_which_phonetic_appears(word, phonetic):
+    substr_indexes = []
+    temp = word
+    total_index = 0
+    while len(temp) > 0:
+        index = temp.index(phonetic)
+        end_of_phonetic = (index + len(phonetic))
+        temp = temp[end_of_phonetic:]
+        if total_index == 0:
+            substr_indexes.append(index)
+        else:
+            substr_indexes.append(total_index + index)
+        total_index += end_of_phonetic
+
+        if len(temp) < len(phonetic):
+            break
+
+    return substr_indexes
 
 def split_words_into_syllables(target_word, word_list):
     phonetic_word_list = []
@@ -140,26 +171,33 @@ def split_words_into_syllables(target_word, word_list):
                 phonetic = phonetic.replace(char, '')
 
             if phonetic in word:
-                substr_index = word.index(phonetic)
-                if modifiers:
-                    for mod in modifiers:
-                        if modifiers[mod]:
-                            # If modifier is S
-                            if mod == 'S':
-                                char_in_mod_pos = word[0]
+
+                substr_indexes = indexes_in_which_phonetic_appears(word, phonetic)
+
+                for index in substr_indexes:
+                    if modifiers:
+                        for mod in modifiers:
+                            if modifiers[mod]:
+                                # If modifier is S
+                                if mod == 'S':
+                                    char_in_mod_pos = word[0]
+                                else:
+                                    char_in_mod_pos = word[index - 1]
                             else:
-                                char_in_mod_pos = word[substr_index - 1]
-                        else:
-                            # If modifier is E
-                            if mod == 'E':
-                                char_in_mod_pos = word[-1]
-                            else:
-                                char_in_mod_pos = word[substr_index + len(mod)]
-                        if check_if_mod_valid(char_in_mod_pos, mod):
-                            # Replaces the substring with * in the word, and replaces the substring with the
-                            # phonetic representation in the phonetic_word
-                            word = word.replace(char_in_mod_pos + phonetic, '*')
-                            phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
+                                # If modifier is E
+                                if mod == 'E':
+                                    char_in_mod_pos = word[-1]
+                                else:
+                                    char_in_mod_pos = word[index + len(mod)]
+                            if check_char_mod_validity(char_in_mod_pos, mod):
+                                # Replaces the substring with * in the word, and replaces the substring with the
+                                # phonetic representation in the phonetic_word
+                                word = word.replace(char_in_mod_pos + phonetic, '*')
+                                phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
+                                                                  PHONETIC_ALPHABET[mod + phonetic])
+                            elif check_pos_mod_validity(mod, phonetic, word, index):
+                                word = word.replace(phonetic, '*')
+                                phonetic_word = phonetic_word.replace(phonetic,
                                                                   PHONETIC_ALPHABET[mod + phonetic])
                 else:
                     word = word.replace(phonetic, '*')
