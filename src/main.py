@@ -11,82 +11,82 @@ WORD_LIST = ['ooohooo', 'Computing', 'Polluting', 'Diluting', 'Commuting', 'Recr
 PHONETIC_ALPHABET = {
 
     # Vowels
-    'u': '/ʌ/',
-    'ar': '/ɑ/',
-    'Cath': '/ɑ/',
-    'a': '/æ/',
-    'easE': '/æ/',
-    'e': '/e/',
-    'Sa': '/ə/',
-    'ur': '/ɜ/',
-    'Cear': '/ɜ/',
-    'i': '/ɪ/',
-    'ee': '/e/',
-    'ea': '/e/',
-    'Cey': '/e/',
-    'o': '/ɒ/',
-    'Cour': '/ɔ/',
-    'all': '/ɔ/',
-    'ut': '/ʊ/',
-    'pu': '/ʊ/',
-    'ue': '/u/',
-    'oo': '/u/',
-    'iCe': '/aɪ/',
-    'eye': '/aɪ/',
-    'ow': '/aʊ/',
-    'ou': '/aʊ/',
-    'ay': '/eɪ/',
-    'eigh': '/eɪ/',
-    'onV': '/oʊ/',
-    'omV': '/oʊ/',
-    'oE': '/oʊ/',
-    'oy': '/ɔɪ/',
-    'oi': '/ɔɪ/',
-    'Chere': '/eə/',
-    'air': '/eə/',
-    'ear': '/ɪə/',
-    'ere': '/ɪə/',
-    'ure': '/ʊə/',
-    'ourA': '/ʊə/',
+    'u': '/1/',
+    'ar': '/2/',
+    'Cath': '/2/',
+    'a': '/3/',
+    'easE': '/3/',
+    'Sa': '/4/',
+    'ur': '/5/',
+    'Cear': '/5/',
+    'i': '/6/',
+    'e': '/7/',
+    'ee': '/7/',
+    'ea': '/7/',
+    'Cey': '/7/',
+    'o': '/8/',
+    'Cour': '/9/',
+    'all': '/9/',
+    'ut': '/10/',
+    'pu': '/10/',
+    'ue': '/11/',
+    'oo': '/11/',
+    'iCe': '/12/',
+    'eye': '/12/',
+    'ow': '/13/',
+    'ou': '/13/',
+    'ay': '/14/',
+    'eigh': '/14/',
+    'onV': '/15/',
+    'omV': '/15/',
+    'oE': '/15/',
+    'oy': '/16/',
+    'oi': '/16/',
+    'Chere': '/17/',
+    'air': '/17/',
+    'ear': '/18/',
+    'ere': '/19/',
+    'ure': '/20/',
+    'ourA': '/20/',
 
     # Consonants
-    'b': '/b/',
-    'd': '/d/',
-    'f': '/f/',
-    'g': '/g/',
-    'h': '/h/',
-    'y': '/j/',
-    'c': '/k/',
-    'ck': '/k/',
-    'l': '/l/',
-    'm': '/m/',
-    'n': '/n/',
-    'ing': '/ŋ/',
-    'p': '/p/',
-    'r': '/r/',
-    's': '/s/',
-    'ss': '/s/',
-    'sh': '/ʃ/',
-    't': '/t/',
-    'tt': '/t/',
-    'ch': '/tʃ/',
-    'thin': '/θ/',
-    'oth': '/θ/',
-    'th': '/ð/',
-    'v': '/v/',
-    'w': '/w/',
-    'z': '/z/',
-    'eas': '/ʒ/',
-    'is': '/ʒ/',
-    'j': '/dʒ/',
-    'ge': '/dʒ/',
+    'b': '/21/',
+    'd': '/22/',
+    'f': '/23/',
+    'g': '/24/',
+    'h': '/25/',
+    'y': '/26/',
+    'c': '/27/',
+    'ck': '/27/',
+    'l': '/28/',
+    'm': '/29/',
+    'n': '/30/',
+    'ing': '/31/',
+    'p': '/32/',
+    'r': '/33/',
+    's': '/34/',
+    'ss': '/34/',
+    'sh': '/35/',
+    't': '/36/',
+    'tt': '/36/',
+    'ch': '/37/',
+    'thin': '/38/',
+    'oth': '/38/',
+    'th': '/39/',
+    'v': '/40/',
+    'w': '/41/',
+    'z': '/42/',
+    'eas': '/43/',
+    'is': '/43/',
+    'j': '/44/',
+    'ge': '/44/',
 
 
-    # testing
-    'Comp': '/yassss/',
-    # 'ooo': '/yes/',
-    'Sooo': '/hello/',
-    'oooE': '/hello/'
+    # # testing
+    # 'Comp': '/420/',
+    # # 'ooo': '/yes/',
+    'Sooo': '/100/',
+    'oooE': '/101/'
 }
 
 CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
@@ -135,16 +135,33 @@ def indexes_in_which_phonetic_appears(word, phonetic):
 
     return substr_indexes
 
-def split_words_into_syllables(target_word, word_list):
+def replace_word_with_phonetic(before, word, phonetic_word, phonetic, mod, char_in_mod_pos=-1, modifiers=[],
+                               maximum_number_replacements=-1):
+    if before:
+        mod_phonetic_order = mod + phonetic
+    else:
+        mod_phonetic_order = phonetic + mod
+
+    if maximum_number_replacements != -1:
+        word = word.replace(phonetic, '*', maximum_number_replacements)
+        phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[mod_phonetic_order],
+                                              maximum_number_replacements)
+    else:
+        word = word.replace(char_in_mod_pos + phonetic, '*')
+        if modifiers[mod]:
+            phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
+                                                  PHONETIC_ALPHABET[mod + phonetic])
+
+def split_words_into_syllables(word_list):
     phonetic_word_list = []
     # We are fitting the word to the phonetics to the fullest extent, such that largest phonetics are fitted first
     phonetic_largest = sorted([x for x in PHONETIC_ALPHABET], key=len, reverse=True)
 
     for word in word_list:
+        word_added = False
+        original = word
         word = word.lower()
         phonetic_word = word
-        print()
-        print(word)
         # Checking what exists (MOVE THIS TO OUTER LOOP)
         for phonetic in phonetic_largest:
 
@@ -153,6 +170,7 @@ def split_words_into_syllables(target_word, word_list):
             # No further chars left
             if set(word) == {'*'}:
                 phonetic_word_list.append(phonetic_word)
+                word_added = True
                 break
 
             # If the phonetic contains a modifier
@@ -172,43 +190,72 @@ def split_words_into_syllables(target_word, word_list):
 
             if phonetic in word:
 
-                substr_indexes = indexes_in_which_phonetic_appears(word, phonetic)
+                # substr_indexes = indexes_in_which_phonetic_appears(word, phonetic)
+                index = word.index(phonetic)
+                # for index in substr_indexes:
+                if modifiers:
+                    for mod in modifiers:
 
-                for index in substr_indexes:
-                    if modifiers:
-                        for mod in modifiers:
+                        # If the substring within the word should be replaced with its phonetic representation
+                        replace = False
+
+                        if mod == 'S':
+                            replace = word.startswith(phonetic)
+                            if replace:
+                                word = word.replace(phonetic, '*', 1)
+                                phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[mod + phonetic], 1)
+                        elif mod == 'E':
+                            replace = word.endswith(phonetic)
+                            if replace:
+                                word = word.replace(phonetic, '*', 1)
+                                phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic + mod], 1)
+                        else:
                             if modifiers[mod]:
-                                # If modifier is S
-                                if mod == 'S':
-                                    char_in_mod_pos = word[0]
-                                else:
-                                    char_in_mod_pos = word[index - 1]
+                                char_in_mod_pos = word[index - 1]
                             else:
-                                # If modifier is E
-                                if mod == 'E':
-                                    char_in_mod_pos = word[-1]
-                                else:
-                                    char_in_mod_pos = word[index + len(mod)]
+                                char_in_mod_pos = word[index + len(mod)]
                             if check_char_mod_validity(char_in_mod_pos, mod):
                                 # Replaces the substring with * in the word, and replaces the substring with the
                                 # phonetic representation in the phonetic_word
                                 word = word.replace(char_in_mod_pos + phonetic, '*')
-                                phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
-                                                                  PHONETIC_ALPHABET[mod + phonetic])
-                            elif check_pos_mod_validity(mod, phonetic, word, index):
-                                word = word.replace(phonetic, '*')
-                                phonetic_word = phonetic_word.replace(phonetic,
-                                                                  PHONETIC_ALPHABET[mod + phonetic])
+                                if modifiers[mod]:
+                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
+                                                                          PHONETIC_ALPHABET[mod + phonetic])
+                                else:
+                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
+                                                                          PHONETIC_ALPHABET[phonetic + mod])
+
                 else:
                     word = word.replace(phonetic, '*')
                     phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic])
 
-        phonetic_word_list.append(phonetic_word)
+        if not word_added:
+            phonetic_word_list.append(phonetic_word)
 
     # print(phonetic_largest)
-    pass
+    return phonetic_word_list
 
     # Idea, go through each letter and write down the phonetics for that letter. Compare the number of similar phonetics
 
+def find_best_matches(word_list):
+    best_matches = []
+
+    input_word = word_list[0]
+    # Splits the word into phonetics, removing the /x/ either side
+    formatted_input_word = list(filter(None, input_word.split('/')))
+
+    print(formatted_input_word)
+    print()
+
+    for i in range(1, len(word_list)):
+        print(WORD_LIST[i - 1])
+        word = word_list[i]
+        word = list(filter(None, word.split('/')))
+        print(word)
+
+    return best_matches
+
+
 if __name__ == '__main__':
-    split_words_into_syllables(WORD, WORD_LIST)
+    phonetic_word_list = split_words_into_syllables([WORD] + WORD_LIST.copy())
+    best_matches = find_best_matches(phonetic_word_list)
