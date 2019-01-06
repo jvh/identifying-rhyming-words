@@ -1,15 +1,15 @@
-"""
-Given a list of words (the first being the word in which we are searching for others that rhyme), find the rhyming
-words to the specified input
+#############################################################################################
+# File: main.py                                                                             #
+#                                                                                           #
+# Given a list of words (the first being the word in which we are searching for others that #
+# rhyme), find the rhyming words to the specified input                                     #
+#############################################################################################
 
-:param word_list:
-:return:
-"""
 
 import random
 
-INPUT_WORD = 'orange'
-INPUT_WORD_LIST = ['ooohooo', 'Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
+INPUT_WORD = 'kiki'
+INPUT_WORD_LIST = ['Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
 
 # The phonetic language in the form substring: phonetic_sound_label. I have decided to use numbers within // in order to
 #     denote a phonetic character. I shall be replacing the substrings in a given word with their phonetic equivalents.
@@ -25,8 +25,8 @@ PHONETIC_ALPHABET = {
     'a': '/3/', 'easE': '/3/',
     'Sa': '/4/',
     'ur': '/5/', 'Cear': '/5/',
-    'i': '/6/',
-    'e': '/7/', 'ee': '/7/', 'ea': '/7/', 'Cey': '/7/',
+    'ie': '/6/',
+    'e': '/7/', 'ee': '/7/', 'ea': '/7/', 'Cey': '/7/', 'i': '/7/',
     'o': '/8/',
     'Cour': '/9/', 'all': '/9/',
     'ut': '/10/', 'pu': '/10/',
@@ -48,7 +48,7 @@ PHONETIC_ALPHABET = {
     'g': '/24/',
     'h': '/25/',
     'y': '/26/',
-    'c': '/27/', 'ck': '/27/',
+    'c': '/27/', 'ck': '/27/', 'k': '/27',
     'l': '/28/',
     'm': '/29/',
     'n': '/30/',
@@ -201,24 +201,45 @@ def find_best_matches(words_list):
             i = -1
             continue
 
+        i += 0
+
         total = -1
 
         word = list(filter(None, word.split('/')))
         word.reverse()
 
+        # This tracks the number of cumulative phonetic characters which don't appear in both words, only counted
+        # from the end of the word (once a character is correctly matched, this is set to -1). This determines if the
+        # word is eligible to be considered
+        number_incorrect_at_beginning = 0
+
+        # Describes if the word is eligible to be considered for validity
+        eligible = True
+
         # The number of successive correct inputs in a row
         successive_inputs = 0
 
-        for phonetic_type in word:
+        for i in range(len(word)):
+
+            phonetic_type = word[i]
 
             if phonetic_type in formatted_input_word:
+                # The word is valid
+                number_incorrect_at_beginning = -1
+
                 # Score is distance from each other from end of word, end of word is preferred so penalisation applied
                 # to later indexes, unless there are correct successive phonetics, at which point no penalty is applied
                 index_in_input = formatted_input_word.index(phonetic_type)
                 if successive_inputs > 0:
                     score = abs(index_in_input - word.index(phonetic_type))
                 else:
-                    score = abs(index_in_input - word.index(phonetic_type)) + (index_in_input * 5)
+                    distance = abs(index_in_input - word.index(phonetic_type))
+                    # Too far away to be considered applicable
+                    if distance > 2:
+                        word_len = len(word)
+                        score = (input_len / word_len) * 10
+                    else:
+                        score = distance + (index_in_input * 6)
 
                 successive_inputs += 1
 
@@ -227,6 +248,14 @@ def find_best_matches(words_list):
                 else:
                     total += score
             else:
+                if number_incorrect_at_beginning != -1:
+                    number_incorrect_at_beginning += 1
+                    # Must have a matching phonetic within the last half of input, otherwise does not match
+                    if number_incorrect_at_beginning == round(input_len / 2):
+                        # Remove from the list of possible items to consider as this is no longer a valid choice
+                        eligible = False
+                        break
+
                 successive_inputs = 0
                 # Penalise by 10 points if doesn't exist, corrected for length
                 word_len = len(word)
@@ -237,7 +266,7 @@ def find_best_matches(words_list):
                 else:
                     total += score
 
-        if total > -1:
+        if total > -1 and eligible:
             if total in scores:
                 scores[total].append({key: word})
             else:
@@ -249,7 +278,8 @@ def find_best_matches(words_list):
     # best_matched_words = [scores[key] for key in sorted(scores) if key < sorted(scores)[0] + 5]
 
     best_scores = list(sorted(scores))
-    sorted_scores = [scores[key] for key in best_scores if key < ((input_len - 1) * 10)]
+    look = ((input_len) * 10)
+    sorted_scores = [scores[key] for key in best_scores if key < look]
 
     if not sorted_scores:
         return []
@@ -257,15 +287,27 @@ def find_best_matches(words_list):
     elif len(sorted_scores[0]) > 1:
         best_matched_words = best_scores
     else:
+        difference = max(scores) - min(scores)
+        best = best_scores[0] + 5
+
+        # Compare scores against best score. They will be included if within 1/2 difference or within 5, whatever is \
+        # largest
+
+        compare = max(difference/2, best)
+
         # Otherwise find scores within 5 of best
-        best = best_scores[0]
-        best_within_range = [scores[key] for key in scores if key < (best + 5)]
+        best_within_range = [scores[key] for key in scores if key < compare]
         best_matched_words += best_within_range
 
     return best_matched_words
 
 
-if __name__ == '__main__':
+def run():
+    """
+    Kicks off the running of the program.
+
+    :return (str): [one of] The word which rhymes the best
+    """
     phonetic_list = split_words_into_phonetics([INPUT_WORD] + INPUT_WORD_LIST.copy())
     best_matches = find_best_matches(phonetic_list)
 
@@ -276,6 +318,12 @@ if __name__ == '__main__':
                 word_selection.append(list(word.keys())[0])
         chosen_word = random.choice(word_selection)
     else:
+        word_selection = []
         chosen_word = "NOTHING (there are no rhyming words)"
 
-    print("With input word {}, the best rhyming match is {}.".format(INPUT_WORD, chosen_word))
+    return chosen_word, word_selection
+
+
+if __name__ == '__main__':
+    best_word, _ = run()
+    print("With input word {}, the best rhyming match is {}.".format(INPUT_WORD, best_word))
