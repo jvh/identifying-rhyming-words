@@ -43,3 +43,46 @@ def test_convoluting():
     assert set(words) == {'Polluting', 'Diluting'}
 
 
+def test_science():
+    main.INPUT_WORD = 'Science'
+    main.INPUT_WORD_LIST = ['Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
+
+    _, words = main.run()
+
+    assert words == []
+
+
+def test_twist():
+    main.INPUT_WORD = 'Twist'
+    main.INPUT_WORD_LIST = ['Cyst', 'Fist', 'Kissed', 'Midst']
+
+    _, words = main.run()
+
+    assert set(words) == {'Fist', 'Cyst'}
+
+
+def test_list():
+    main.INPUT_WORD = 'List'
+    main.INPUT_WORD_LIST = ['Cyst', 'Fist', 'Kissed', 'Midst']
+
+    _, words = main.run()
+
+    assert set(words) == {'Fist', 'Cyst'}
+
+
+def test_missed():
+    main.INPUT_WORD = 'Missed'
+    main.INPUT_WORD_LIST = ['Cyst', 'Fist', 'Kissed', 'Midst']
+
+    _, words = main.run()
+
+    assert set(words) == {'Kissed'}
+
+
+def test_coding():
+    main.INPUT_WORD = 'Coding'
+    main.INPUT_WORD_LIST = ['Cyst', 'Fist', 'Kissed', 'Midst']
+
+    _, words = main.run()
+
+    assert words == []

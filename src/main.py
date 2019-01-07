@@ -8,7 +8,7 @@
 
 import random
 
-INPUT_WORD = 'kiki'
+INPUT_WORD = 'convoluting'
 INPUT_WORD_LIST = ['Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
 
 # The phonetic language in the form substring: phonetic_sound_label. I have decided to use numbers within // in order to
@@ -25,13 +25,13 @@ PHONETIC_ALPHABET = {
     'a': '/3/', 'easE': '/3/',
     'Sa': '/4/',
     'ur': '/5/', 'Cear': '/5/',
-    'ie': '/6/',
+    'ie': '/6/', 'yC': '/6/',
     'e': '/7/', 'ee': '/7/', 'ea': '/7/', 'Cey': '/7/', 'i': '/7/',
     'o': '/8/',
     'Cour': '/9/', 'all': '/9/',
     'ut': '/10/', 'pu': '/10/',
     'ue': '/11/', 'oo': '/11/',
-    'iCe': '/12/', 'eye': '/12/',
+    'eye': '/12/',
     'ow': '/13/', 'ou': '/13/',
     'ay': '/14/', 'eigh': '/14/',
     'onV': '/15/', 'omV': '/15/', 'oE': '/15/',
@@ -39,7 +39,7 @@ PHONETIC_ALPHABET = {
     'Chere': '/17/', 'air': '/17/',
     'ear': '/18/',
     'ere': '/19/',
-    'ure': '/20/', 'ourA': '/20/',
+    'ure': '/20/', 'ourE': '/20/',
 
     # Consonants
     'b': '/21/',
@@ -71,14 +71,46 @@ PHONETIC_ALPHABET = {
 CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
 VOWELS = 'aeiou'
 
+phonetics_with_modifiers = {}
+
+
+def find_phonetics_with_modifiers():
+    """
+    This finds all those phonetics with modifiers existing in them
+
+    :return {str: (str, [{str: bool}])}: The phonetic, containing a tuple which specifies its trimmed version (without
+    the modifiers) as it's first element along with, as its second element, a dict containing the modifiers existing
+    within and a corresponding bool where True specifies that the modifier begins at the start.
+    """
+    global phonetics_with_modifiers
+
+    for phonetic in PHONETIC_ALPHABET:
+        # If the phonetic contains a modifier
+        modifiers = {}
+        for i in range(len(phonetic)):
+            char = phonetic[i]
+            if char.isupper():
+                # True if modifier at start of phonetic, false if at end (or otherwise)
+                if i == 0:
+                    modifiers[char] = True
+                else:
+                    modifiers[char] = False
+
+        if modifiers:
+            trimmed = ''
+            for char in modifiers:
+                trimmed = phonetic.replace(char, '')
+
+            phonetics_with_modifiers[phonetic] = (trimmed, modifiers)
+
 
 def check_char_mod_validity(char, modifier):
     """
     Given a modifier to a char (checking if either consonant -- C, or vowel -- V), return is letter in position is
     indeed a vowel or consonant
 
-    :param (str) char:
-    :param (str) modifier:
+    :param (str) char: The character held in the word
+    :param (str) modifier: The modifier which we're comparing against
     :return (bool): Whether the corresponding char is appropriate according to the modifier
     """
     if modifier == 'C':
@@ -94,14 +126,15 @@ def split_words_into_phonetics(word_list):
     """
     Splits a given word into its phonetics.
 
-    :param word_list:
-    :return:
+    :param ([str]) word_list: List of the words, first word being the INPUT_WORD.
+    :return {str: str}: The original word along with its phonetic representation
     """
     phonetic_word_list = {}
     # We are fitting the word to the phonetics to the fullest extent, such that largest phonetics are fitted first
     phonetic_largest = sorted([x for x in PHONETIC_ALPHABET], key=len, reverse=True)
 
     for w in word_list:
+
         word_added = False
         original = w
         w = w.lower()
@@ -116,31 +149,19 @@ def split_words_into_phonetics(word_list):
                 word_added = True
                 break
 
-            # If the phonetic contains a modifier
-            modifiers = {}
-            for i in range(len(phonetic)):
-                char = phonetic[i]
-                if char.isupper():
-                    # True if modifier at start of phonetic, false if at end (or otherwise)
-                    if i == 0:
-                        modifiers[char] = True
-                    else:
-                        modifiers[char] = False
-
-            for char in modifiers:
-                phonetic = phonetic.replace(char, '')
+            # If phonetic contains modifier, get trimmed version and corresponding modifiers
+            if phonetic in phonetics_with_modifiers:
+                phonetic, modifiers = phonetics_with_modifiers[phonetic]
+            else:
+                modifiers = []
 
             if phonetic in w:
 
-                # substr_indexes = indexes_in_which_phonetic_appears(word, phonetic)
                 index = w.index(phonetic)
-                # for index in substr_indexes:
+
                 if modifiers:
                     for mod in modifiers:
-
-                        # If the substring within the word should be replaced with its phonetic representation
-                        replace = False
-
+                        # If mod S or E, ensure the modifier is met in word
                         if mod == 'S':
                             replace = w.startswith(phonetic)
                             if replace:
@@ -152,10 +173,14 @@ def split_words_into_phonetics(word_list):
                                 w = w.replace(phonetic, '*', 1)
                                 phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic + mod], 1)
                         else:
+                            # If modifier is anything else, ensure that condition is met by checking the character in
+                            # the word which is specified by the boolean held by the mod dict (True meaning mod is
+                            # at beginning of phonetic)
                             if modifiers[mod]:
                                 char_in_mod_pos = w[index - 1]
                             else:
                                 char_in_mod_pos = w[index + len(mod)]
+
                             if check_char_mod_validity(char_in_mod_pos, mod):
                                 # Replaces the substring with * in the word, and replaces the substring with the
                                 # phonetic representation in the phonetic_word
@@ -168,30 +193,33 @@ def split_words_into_phonetics(word_list):
                                                                           PHONETIC_ALPHABET[phonetic + mod])
 
                 else:
+                    # If no mods, just do regular replacement
                     w = w.replace(phonetic, '*')
                     phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic])
 
         if not word_added:
+            # Add to list even if it hasn't been fully replaced by phonetics
             phonetic_word_list[original] = phonetic_word
 
-    # print(phonetic_largest)
     return phonetic_word_list
-
-    # Idea, go through each letter and write down the phonetics for that letter. Compare the number of similar phonetics
 
 
 def find_best_matches(words_list):
+    """
+    Given all phonetic representation of words, score them based on likelihood of rhyming. Lower score is better.
+
+    :param ({}) words_list: Represents the original word: phonetic representation
+    :return ([{}]): A list of the best scoring words, held in a dict with original word: phonetic representation
+    """
+    # Assigned a score with score: [corresponding values]. Lower is better.
     scores = {}
 
-    # formatted_words = list(words_list.values())
     input_word = words_list[INPUT_WORD]
-    # Splits the word into phonetics, removing the /x/ either side
+    # Splits the word into phonetics (list representation), removing the /x/ either side
     formatted_input_word = list(filter(None, input_word.split('/')))
+    # Reverses the phonetic word as rhymes are more often determined by the ending of the word
     formatted_input_word.reverse()
     input_len = len(formatted_input_word)
-
-    print(formatted_input_word)
-    print()
 
     i = 0
 
@@ -200,17 +228,16 @@ def find_best_matches(words_list):
         if i == 0:
             i = -1
             continue
-
         i += 0
 
+        # Holds the total score for that phonetic word
         total = -1
 
         word = list(filter(None, word.split('/')))
         word.reverse()
 
-        # This tracks the number of cumulative phonetic characters which don't appear in both words, only counted
-        # from the end of the word (once a character is correctly matched, this is set to -1). This determines if the
-        # word is eligible to be considered
+        # Timeout feature which determines eligibility of the word given that there is a match within the last 1/3 of
+        # the word
         number_incorrect_at_beginning = 0
 
         # Describes if the word is eligible to be considered for validity
@@ -219,21 +246,19 @@ def find_best_matches(words_list):
         # The number of successive correct inputs in a row
         successive_inputs = 0
 
-        for i in range(len(word)):
-
-            phonetic_type = word[i]
+        for phonetic_type in word:
 
             if phonetic_type in formatted_input_word:
                 # The word is valid
                 number_incorrect_at_beginning = -1
 
-                # Score is distance from each other from end of word, end of word is preferred so penalisation applied
-                # to later indexes, unless there are correct successive phonetics, at which point no penalty is applied
+                # Successive matching strings are rewarded by not suffering any penalisation
                 index_in_input = formatted_input_word.index(phonetic_type)
+                distance = abs(index_in_input - word.index(phonetic_type))
+
                 if successive_inputs > 0:
-                    score = abs(index_in_input - word.index(phonetic_type))
+                    score = distance
                 else:
-                    distance = abs(index_in_input - word.index(phonetic_type))
                     # Too far away to be considered applicable
                     if distance > 2:
                         word_len = len(word)
@@ -248,54 +273,53 @@ def find_best_matches(words_list):
                 else:
                     total += score
             else:
+                # Phonetics do not match, penalise
                 if number_incorrect_at_beginning != -1:
                     number_incorrect_at_beginning += 1
-                    # Must have a matching phonetic within the last half of input, otherwise does not match
-                    if number_incorrect_at_beginning == round(input_len / 2):
+                    # Must have a matching phonetic within the last 1/3 of input, otherwise presumed not to rhyme
+                    if number_incorrect_at_beginning == round(input_len / 3):
                         # Remove from the list of possible items to consider as this is no longer a valid choice
                         eligible = False
                         break
 
                 successive_inputs = 0
+
                 # Penalise by 10 points if doesn't exist, corrected for length
                 word_len = len(word)
-
                 score = (input_len / word_len) * 10
+
                 if total == -1:
                     total = score
                 else:
                     total += score
 
+        # If phonetic word is eligible, add score to list
         if total > -1 and eligible:
             if total in scores:
-                scores[total].append({key: word})
+                scores[total].update({key: word})
             else:
-                scores[total] = [{key: word}]
+                scores[total] = {key: word}
 
     best_matched_words = []
-
-    # Returns those matches which received a score of 5 between themselves
-    # best_matched_words = [scores[key] for key in sorted(scores) if key < sorted(scores)[0] + 5]
-
     best_scores = list(sorted(scores))
-    look = ((input_len) * 10)
-    sorted_scores = [scores[key] for key in best_scores if key < look]
+    # Only chooses those scores which are better than the input length of the input phonetic word * 10
+    limited_scores = [scores[key] for key in best_scores if key < (input_len * 10)]
 
-    if not sorted_scores:
+    if not limited_scores:
         return []
+
     # If there are more than 1 word with the same best score, take these as being best matched
-    elif len(sorted_scores[0]) > 1:
+    elif len(limited_scores[0]) > 1:
         best_matched_words = best_scores
+
     else:
         difference = max(scores) - min(scores)
         best = best_scores[0] + 5
 
         # Compare scores against best score. They will be included if within 1/2 difference or within 5, whatever is \
         # largest
-
         compare = max(difference/2, best)
 
-        # Otherwise find scores within 5 of best
         best_within_range = [scores[key] for key in scores if key < compare]
         best_matched_words += best_within_range
 
@@ -308,14 +332,16 @@ def run():
 
     :return (str): [one of] The word which rhymes the best
     """
+    # Finding those phonetics with modifiers
+    find_phonetics_with_modifiers()
+
     phonetic_list = split_words_into_phonetics([INPUT_WORD] + INPUT_WORD_LIST.copy())
     best_matches = find_best_matches(phonetic_list)
 
     if best_matches:
         word_selection = []
-        for selection in best_matches:
-            for word in selection:
-                word_selection.append(list(word.keys())[0])
+        for w in best_matches:
+            word_selection += [k for k in w.keys()]
         chosen_word = random.choice(word_selection)
     else:
         word_selection = []
