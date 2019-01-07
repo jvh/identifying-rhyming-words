@@ -78,19 +78,19 @@ def find_phonetics_with_modifiers():
     """
     This finds all those phonetics with modifiers existing in them
 
-    :return {str: (str, [{str: bool}])}: The phonetic, containing a tuple which specifies its trimmed version (without
+    :return {str: (str, [{str: bool}])}: The phoneme, containing a tuple which specifies its trimmed version (without
     the modifiers) as it's first element along with, as its second element, a dict containing the modifiers existing
     within and a corresponding bool where True specifies that the modifier begins at the start.
     """
     global phonetics_with_modifiers
 
-    for phonetic in PHONETIC_ALPHABET:
-        # If the phonetic contains a modifier
+    for phoneme in PHONETIC_ALPHABET:
+        # If the phoneme contains a modifier
         modifiers = {}
-        for i in range(len(phonetic)):
-            char = phonetic[i]
+        for i in range(len(phoneme)):
+            char = phoneme[i]
             if char.isupper():
-                # True if modifier at start of phonetic, false if at end (or otherwise)
+                # True if modifier at start of phoneme, false if at end (or otherwise)
                 if i == 0:
                     modifiers[char] = True
                 else:
@@ -99,9 +99,9 @@ def find_phonetics_with_modifiers():
         if modifiers:
             trimmed = ''
             for char in modifiers:
-                trimmed = phonetic.replace(char, '')
+                trimmed = phoneme.replace(char, '')
 
-            phonetics_with_modifiers[phonetic] = (trimmed, modifiers)
+            phonetics_with_modifiers[phoneme] = (trimmed, modifiers)
 
 
 def check_char_mod_validity(char, modifier):
@@ -127,7 +127,7 @@ def split_words_into_phonetics(word_list):
     Splits a given word into its phonetics.
 
     :param ([str]) word_list: List of the words, first word being the INPUT_WORD.
-    :return {str: str}: The original word along with its phonetic representation
+    :return {str: str}: The original word along with its phoneme representation
     """
     phonetic_word_list = {}
     # We are fitting the word to the phonetics to the fullest extent, such that largest phonetics are fitted first
@@ -138,10 +138,10 @@ def split_words_into_phonetics(word_list):
         word_added = False
         original = w
         w = w.lower()
-        # This stores the phonetic equivalent, we take the original and replace as we go along
+        # This stores the phoneme equivalent, we take the original and replace as we go along
         phonetic_word = w
 
-        for phonetic in phonetic_largest:
+        for phoneme in phonetic_largest:
 
             # No further chars left
             if set(w) == {'*'}:
@@ -149,33 +149,33 @@ def split_words_into_phonetics(word_list):
                 word_added = True
                 break
 
-            # If phonetic contains modifier, get trimmed version and corresponding modifiers
-            if phonetic in phonetics_with_modifiers:
-                phonetic, modifiers = phonetics_with_modifiers[phonetic]
+            # If phoneme contains modifier, get trimmed version and corresponding modifiers
+            if phoneme in phonetics_with_modifiers:
+                phoneme, modifiers = phonetics_with_modifiers[phoneme]
             else:
                 modifiers = []
 
-            if phonetic in w:
+            if phoneme in w:
 
-                index = w.index(phonetic)
+                index = w.index(phoneme)
 
                 if modifiers:
                     for mod in modifiers:
                         # If mod S or E, ensure the modifier is met in word
                         if mod == 'S':
-                            replace = w.startswith(phonetic)
+                            replace = w.startswith(phoneme)
                             if replace:
-                                w = w.replace(phonetic, '*', 1)
-                                phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[mod + phonetic], 1)
+                                w = w.replace(phoneme, '*', 1)
+                                phonetic_word = phonetic_word.replace(phoneme, PHONETIC_ALPHABET[mod + phoneme], 1)
                         elif mod == 'E':
-                            replace = w.endswith(phonetic)
+                            replace = w.endswith(phoneme)
                             if replace:
-                                w = w.replace(phonetic, '*', 1)
-                                phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic + mod], 1)
+                                w = w.replace(phoneme, '*', 1)
+                                phonetic_word = phonetic_word.replace(phoneme, PHONETIC_ALPHABET[phoneme + mod], 1)
                         else:
                             # If modifier is anything else, ensure that condition is met by checking the character in
                             # the word which is specified by the boolean held by the mod dict (True meaning mod is
-                            # at beginning of phonetic)
+                            # at beginning of phoneme)
                             if modifiers[mod]:
                                 char_in_mod_pos = w[index - 1]
                             else:
@@ -183,19 +183,19 @@ def split_words_into_phonetics(word_list):
 
                             if check_char_mod_validity(char_in_mod_pos, mod):
                                 # Replaces the substring with * in the word, and replaces the substring with the
-                                # phonetic representation in the phonetic_word
-                                w = w.replace(char_in_mod_pos + phonetic, '*')
+                                # phoneme representation in the phonetic_word
+                                w = w.replace(char_in_mod_pos + phoneme, '*')
                                 if modifiers[mod]:
-                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
-                                                                          PHONETIC_ALPHABET[mod + phonetic])
+                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phoneme,
+                                                                          PHONETIC_ALPHABET[mod + phoneme])
                                 else:
-                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phonetic,
-                                                                          PHONETIC_ALPHABET[phonetic + mod])
+                                    phonetic_word = phonetic_word.replace(char_in_mod_pos + phoneme,
+                                                                          PHONETIC_ALPHABET[phoneme + mod])
 
                 else:
                     # If no mods, just do regular replacement
-                    w = w.replace(phonetic, '*')
-                    phonetic_word = phonetic_word.replace(phonetic, PHONETIC_ALPHABET[phonetic])
+                    w = w.replace(phoneme, '*')
+                    phonetic_word = phonetic_word.replace(phoneme, PHONETIC_ALPHABET[phoneme])
 
         if not word_added:
             # Add to list even if it hasn't been fully replaced by phonetics
@@ -216,7 +216,7 @@ def find_best_matches(words_list):
 
     best_matched_words = []
     best_scores = list(sorted(scores))
-    # Only chooses those scores which are better than the input length of the input phonetic word * 10
+    # Only chooses those scores which are better than the input length of the input phoneme word * 10
     limited_scores = [scores[key] for key in best_scores if key < (input_len * 10)]
 
     if not limited_scores:
