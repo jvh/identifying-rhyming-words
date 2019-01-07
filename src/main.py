@@ -8,8 +8,8 @@
 
 import random
 
-INPUT_WORD = 'convoluting'
-INPUT_WORD_LIST = ['Computing', 'Polluting', 'Diluting', 'Commuting', 'Recruiting', 'Drooping']
+INPUT_WORD = 'List'
+INPUT_WORD_LIST = ['Cyst', 'Fist', 'Kissed', 'Midst']
 
 # The phonetic language in the form substring: phonetic_sound_label. I have decided to use numbers within // in order to
 #     denote a phonetic character. I shall be replacing the substrings in a given word with their phonetic equivalents.
@@ -64,7 +64,7 @@ PHONETIC_ALPHABET = {
     'v': '/40/',
     'w': '/41/',
     'z': '/42/',
-    'eas': '/43/', 'is': '/43/',
+    'eas': '/43/', 'is': '/43/', 'ys': '/43/',
     'j': '/44/', 'ge': '/44/',
 }
 
@@ -224,7 +224,7 @@ def find_best_matches(words_list):
 
     # If there are more than 1 word with the same best score, take these as being best matched
     elif len(limited_scores[0]) > 1:
-        best_matched_words = best_scores
+        best_matched_words = [limited_scores[0]]
 
     else:
         difference = max(scores) - min(scores)
