@@ -351,13 +351,13 @@ def run():
     phonetic_list = split_words_into_phonetics([INPUT_WORD] + INPUT_WORD_LIST.copy())
     best_matches = find_best_matches(phonetic_list)
 
+    word_selection = []
+
     if best_matches:
-        word_selection = []
         for w in best_matches:
             word_selection += [k for k in w.keys()]
         chosen_word = random.choice(word_selection)
     else:
-        word_selection = []
         chosen_word = "NOTHING (there are no rhyming words)"
 
     return chosen_word, word_selection
