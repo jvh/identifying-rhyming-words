@@ -206,10 +206,46 @@ def split_words_into_phonetics(word_list):
 
 def find_best_matches(words_list):
     """
-    Given all phonetic representation of words, score them based on likelihood of rhyming. Lower score is better.
+    Given all possible matches, finds only the best ones
 
     :param ({}) words_list: Represents the original word: phonetic representation
     :return ([{}]): A list of the best scoring words, held in a dict with original word: phonetic representation
+    """
+    # The scores of eligible words
+    scores, input_len = find_possible_matches(words_list)
+
+    best_matched_words = []
+    best_scores = list(sorted(scores))
+    # Only chooses those scores which are better than the input length of the input phonetic word * 10
+    limited_scores = [scores[key] for key in best_scores if key < (input_len * 10)]
+
+    if not limited_scores:
+        return []
+
+    # If there are more than 1 word with the same best score, take these as being best matched
+    elif len(limited_scores[0]) > 1:
+        best_matched_words = best_scores
+
+    else:
+        difference = max(scores) - min(scores)
+        best = best_scores[0] + 5
+
+        # Compare scores against best score. They will be included if within 1/2 difference or within 5, whatever is \
+        # largest
+        compare = max(difference/2, best)
+
+        best_within_range = [scores[key] for key in scores if key < compare]
+        best_matched_words += best_within_range
+
+    return best_matched_words
+
+
+def find_possible_matches(words_list):
+    """
+    Given all phonetic representation of words, score them based on likelihood of rhyming. Lower score is better.
+
+    :param ({}) words_list: Represents the original word: phonetic representation
+    :return ({{}}): Returns the score of each of the words given, given that they are eligible
     """
     # Assigned a score with score: [corresponding values]. Lower is better.
     scores = {}
@@ -300,30 +336,7 @@ def find_best_matches(words_list):
             else:
                 scores[total] = {key: word}
 
-    best_matched_words = []
-    best_scores = list(sorted(scores))
-    # Only chooses those scores which are better than the input length of the input phonetic word * 10
-    limited_scores = [scores[key] for key in best_scores if key < (input_len * 10)]
-
-    if not limited_scores:
-        return []
-
-    # If there are more than 1 word with the same best score, take these as being best matched
-    elif len(limited_scores[0]) > 1:
-        best_matched_words = best_scores
-
-    else:
-        difference = max(scores) - min(scores)
-        best = best_scores[0] + 5
-
-        # Compare scores against best score. They will be included if within 1/2 difference or within 5, whatever is \
-        # largest
-        compare = max(difference/2, best)
-
-        best_within_range = [scores[key] for key in scores if key < compare]
-        best_matched_words += best_within_range
-
-    return best_matched_words
+    return scores, input_len
 
 
 def run():
