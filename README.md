@@ -3,6 +3,8 @@
 ## Introduction
 This project aims to identify phonetically similar words. Given a word, along with a list of words, this program outputs the word (if any) in the list which best rhymes with that given word.
 
+**NOTE**: This was done as a personal project.
+
 ## Tasks Overview
 Firstly, we must address what makes 2 words rhyme. According to [1], ”rhyme by definition is based on a regular recurrence of equivalent phonemes or phonemic groups”. As previous works, [2], have focussed primarily on identifying syllables within words, it seems a natural choice to have the main focus here. However, the task of decomposing a word into its constituent syllables is not an easy one, [3], and algorithms are not perfect in defining the boundaries for the syllables. Not only that, but, given the time constraints, it seems unreasonable to attmept this approach. I have therefore decided to split the word into it’s phonetic alphabet representation and compare against this. From Antimoon (http://www.antimoon.com/how/pronunc-soundsipa.htm), I have obtained a list of the phonetic alphabet, and their corresponding English equivalent.
 
