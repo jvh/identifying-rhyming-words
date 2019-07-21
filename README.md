@@ -1,12 +1,22 @@
-# Identifying Rhyming Words
-
-## Introduction
-This project aims to identify phonetically similar words. Given a word, along with a list of words, this program outputs the word (if any) in the list which best rhymes with that given word.
-
 **NOTE**: This was done as a personal project.
 
+# Identifying Rhyming Words
+This project aims to identify phonetically similar words. Given a word, along with a list of words, this program outputs the word (if any) in the list which best rhymes with that given word.
+
+## Usage Instructions
+These commands should both be ran in the **top-level** directory of the repository.
+
+You are able to add additional tests to the `src/test_framework.py` file along with changing the one-time input in the `src/main.py` file. The `INPUT_WORD` describes the target word you are trying to rhyme against and `INPUT_WORD_LIST` for the words that you are testing against (to see which one rhymes most with the target word).
+
+### Prerequisites
+Install [python3](https://www.python.org/download/releases/3.0/).
+
+### Commands
+* Run main program: `python src/main.py`.
+* Run tests: `pytest src/test_framework.py`.
+
 ## Tasks Overview
-Firstly, we must address what makes 2 words rhyme. According to [1], ”rhyme by definition is based on a regular recurrence of equivalent phonemes or phonemic groups”. As previous works, [2], have focussed primarily on identifying syllables within words, it seems a natural choice to have the main focus here. However, the task of decomposing a word into its constituent syllables is not an easy one, [3], and algorithms are not perfect in defining the boundaries for the syllables. Not only that, but, given the time constraints, it seems unreasonable to attmept this approach. I have therefore decided to split the word into it’s phonetic alphabet representation and compare against this. From Antimoon (http://www.antimoon.com/how/pronunc-soundsipa.htm), I have obtained a list of the phonetic alphabet, and their corresponding English equivalent.
+Firstly, we must address what makes 2 words rhyme. According to [1], ”rhyme by definition is based on a regular recurrence of equivalent phonemes or phonemic groups”. As previous works, [2], have focussed primarily on identifying syllables within words, it seems a natural choice to have the main focus here. However, the task of decomposing a word into its constituent syllables is not an easy one, [3], and algorithms are not perfect in defining the boundaries for the syllables. Not only that, but, given the time constraints, it seems unreasonable to attmept this approach. I have therefore decided to split the word into it’s phonetic alphabet representation and compare against this. I have obtained a [list of the phonetic alphabet](http://www.antimoon.com/how/pronunc-soundsipa.htm), and their corresponding English equivalent.
 
 ## Decomposing Words Into Phonetics
 I defined all of the phonetics in a constant, `PHONETIC_ALPHABET`. `PHONETIC_ALPHABET` is a dictionary representing English equivalent: phonetic alphabet index. I have chosen to represent the phonetic alphabet as numbers surrounded by slashes, this is due to the nature in which I find-and-replace characters in a given string. If I were to use the actual phonetic alphabet, it may end up replacing elements within the alphabet (say we are replacing all a’s, if we have a phonetic /a/, the a would be replaced) – this would mean we would need extra checks in place in order to determine if the substring is surrounded by slashes.
