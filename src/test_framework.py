@@ -49,7 +49,7 @@ def test_science():
 
     _, words = main.run()
 
-    assert words == []
+    assert not words
 
 
 def test_twist():
@@ -85,4 +85,4 @@ def test_coding():
 
     _, words = main.run()
 
-    assert words == []
+    assert not words
